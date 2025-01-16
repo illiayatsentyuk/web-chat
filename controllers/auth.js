@@ -1,13 +1,13 @@
-const User = require('../models/user');
-const { validationResult } = require('express-validator');
-const bcrypt = require('bcryptjs');
+const User = require("../models/user");
+const { validationResult } = require("express-validator");
+const bcrypt = require("bcryptjs");
 
 exports.postSignup = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(req);
     return res.json({
-      message: 'Enter valid data',
+      message: "Enter valid data",
       errors: errors,
     });
   }
@@ -21,14 +21,15 @@ exports.postSignup = async (req, res, next) => {
       password: hashedPassword,
       name: name,
     });
-    await user.save();
+    const result = await user.save();
     return res.json({
-      message: 'Sign up successfully',
+      message: "Sign up successfully",
+      userId: result._id,
     });
   } catch (err) {
     console.log(err);
     return res.json({
-      message: 'Some error while signing up',
+      message: "Some error while signing up",
     });
   }
 };
@@ -36,7 +37,7 @@ exports.postLogin = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.json({
-      message: 'Enter valid data',
+      message: "Enter valid data",
       errors: errors,
     });
   }
@@ -47,23 +48,24 @@ exports.postLogin = async (req, res, next) => {
     const user = await User.findOne({ email: email });
     if (!user) {
       return res.json({
-        message: 'No such user',
+        message: "No such user",
       });
     }
     const isEqualPasswords = await bcrypt.compare(password, user.password);
     if (!isEqualPasswords) {
       return res.json({
-        message: 'Passwords do not match',
+        message: "Passwords do not match",
       });
     }
     return res.json({
-      message: 'Logged in',
-      user: user,
+      message: "Logged in",
+      token: token,
+      userId: loadedUser._id.toString(),
     });
   } catch (err) {
     console.log(err);
     return res.json({
-      message: 'Some error while logining in',
+      message: "Some error while logining in",
     });
   }
 };
