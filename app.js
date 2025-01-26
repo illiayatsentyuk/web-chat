@@ -3,8 +3,12 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 require("dotenv").config();
 const authRouter = require("./routes/auth");
+const path = require("path");
+const flash = require("connect-flash");
+const mainRouter = require("./routes/main");
 
-const MONGODB_URI = "mongodb://127.0.0.1:27017/web-chat";
+const MONGODB_URI =
+  "mongodb+srv://grut2077:I562530y2009@node-course-shop.8ylfs.mongodb.net/web-chat";
 const app = express();
 
 app.use(bodyParser.json());
@@ -19,13 +23,29 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(flash());
+app.set("view engine", "ejs");
+app.set("views", "views");
+app.use(express.static(path.join(__dirname, "public")));
+
 app.use(authRouter);
+app.use(mainRouter);
+
+app.use((error, req, res, next) => {
+  const errorMessage = error.message;
+  const errorStatusCode = error.statusCode || 500;
+  const data = error.data;
+  return res.status(errorStatusCode).json({
+    message: errorMessage,
+    data: data,
+  });
+});
 
 mongoose
   .connect(MONGODB_URI)
   .then(() => {
     console.log("Server listening");
-    app.listen(3000);
+    app.listen(3001);
   })
   .catch((err) => {
     console.log(err);

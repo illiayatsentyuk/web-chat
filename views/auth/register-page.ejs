@@ -1,0 +1,29 @@
+<%- include("../partials/head") %>
+<link rel="stylesheet" href="/css/auth.css">
+
+</head>
+<body>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <div id="app">
+        <div class="login-form">
+            <h2 class="login-form-title">Register</h2>
+            <div v-if="seen" class="error-message">
+                <p>{{errorMessage}}</p>
+            </div>
+            <div class="login-form-form">
+                <label for="loginformemail">E-Mail</label>
+                <input v-model="email" type="email" name="loginformemail" id="loginformemail" placeholder="E-Mail">
+                <label for="loginformpassword">Password</label>
+                <input v-model="password" type="password" name="loginformpassword" id="loginformpassword" placeholder="PASSWORD">
+                <label for="loginformname">Username</label>
+                <input v-model="name" type="text" name="loginformname" id="loginformname" placeholder="USERNAME">
+                <button class="login-form-button" type="submit" @click="registerUser">Register</button>
+                <a href="/login" class="login-form-forgotpassword" >Login</a>
+            </div>
+        </form>
+        </div>
+    </div>
+
+    <script src="/js/register.js"></script>
+</body>
+</html>

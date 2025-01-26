@@ -1,20 +1,35 @@
 const User = require("../models/user");
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+exports.getLogin = (req, res, next) => {
+  res.render("auth/login-page", {
+    pageTitle: "Login",
+    errors: null,
+  });
+};
+
+exports.getRegister = (req, res, next) => {
+  res.render("auth/register-page", {
+    pageTitle: "Register",
+    errors: null,
+  });
+};
 
 exports.postSignup = async (req, res, next) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    console.log(req);
-    return res.json({
-      message: "Enter valid data",
-      errors: errors,
-    });
-  }
+
   const email = req.body.email;
   const password = req.body.password;
   const name = req.body.name;
   try {
+    if (!errors.isEmpty()) {
+      const error = new Error("Enter valid data");
+      error.statusCode = 401;
+      error.data = error.toArray();
+      throw error;
+    }
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = new User({
       email: email,
@@ -27,45 +42,48 @@ exports.postSignup = async (req, res, next) => {
       userId: result._id,
     });
   } catch (err) {
-    console.log(err);
-    return res.json({
-      message: "Some error while signing up",
-    });
+    next(err);
   }
 };
 exports.postLogin = async (req, res, next) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.json({
-      message: "Enter valid data",
-      errors: errors,
-    });
-  }
   const email = req.body.email;
   const password = req.body.password;
-
+  let loadedUser;
   try {
+    if (!errors.isEmpty()) {
+      const error = new Error("Enter valid data");
+      error.statusCode = 401;
+      error.data = error.toArray();
+      throw error;
+    }
     const user = await User.findOne({ email: email });
     if (!user) {
-      return res.json({
-        message: "No such user",
-      });
+      const error = new Error("No such user");
+      error.statusCode = 404;
+      error.data = null;
+      throw error;
     }
     const isEqualPasswords = await bcrypt.compare(password, user.password);
     if (!isEqualPasswords) {
-      return res.json({
-        message: "Passwords do not match",
-      });
+      const error = new Error("E-Mail or password is invalid");
+      error.statusCode = 404;
+      error.data = null;
+      throw error;
     }
+    const token = jwt.sign(
+      {
+        email: email,
+      },
+      "somesupersecretsecret"
+    );
+    loadedUser = user._doc;
     return res.json({
       message: "Logged in",
       token: token,
       userId: loadedUser._id.toString(),
     });
   } catch (err) {
-    console.log(err);
-    return res.json({
-      message: "Some error while logining in",
-    });
+    next(err);
   }
 };
